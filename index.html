@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="description" content="Zebedeu Contratos Pro - Gerador profissional de contratos em PDF. Crie contratos de trabalho, aluguel, serviços e muito mais. Por Zebedeu Caetano Tumba.">
+    <meta name="author" content="Zebedeu Caetano Tumba">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>📄 Zebedeu Contratos Pro - Gerador de Contratos PDF</title>
+    
+    <!-- jsPDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <style>
+        :root {
+            --bg: #1a1a2e;
+            --bg-card: rgba(255,255,255,0.05);
+            --text: #ffffff;
+            --text-secondary: #a0a0a0;
+            --accent: #ffd700;
+            --accent-dark: #ffaa00;
+            --danger: #ff4444;
+            --success: #00c853;
+            --warning: #ff9800;
+            --border: rgba(255,255,255,0.1);
+            --input-bg: rgba(255,255,255,0.1);
+        }
+        
+        [data-theme="light"] {
+            --bg: #f5f5f5;
+            --bg-card: rgba(0,0,0,0.02);
+            --text: #1a1a2e;
+            --text-secondary: #666;
+            --accent: #f0a500;
+            --border: rgba(0,0,0,0.1);
+            --input-bg: rgba(0,0,0,0.05);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, var(--bg), #16213e);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--accent);
+        }
+        
+        .header h1 { font-size: 1.8em; color: var(--accent); margin-bottom: 5px; }
+        .header .subtitle { font-size: 0.9em; color: var(--text-secondary); }
+        .header .creator { font-size: 0.8em; color: var(--accent); margin-top: 8px; }
+        
+        .section { display: none; }
+        .section.active { display: block; animation: fadeIn 0.4s ease; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .btn {
+            width: 100%; padding: 14px; margin: 8px 0; border: none; border-radius: 12px;
+            font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+            background: var(--input-bg); color: var(--text); border: 1px solid var(--border);
+            text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #1a1a2e; border: none; }
+        .btn-success { background: linear-gradient(135deg, var(--success), #009624); color: white; border: none; }
+        .btn-warning { background: linear-gradient(135deg, var(--warning), #e68900); color: white; border: none; }
+        .btn-outline { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
+        
+        .card {
+            background: var(--input-bg); border-radius: 12px; padding: 18px; margin: 12px 0;
+            border-left: 5px solid var(--accent); cursor: pointer; transition: all 0.3s ease;
+        }
+        .card:hover { background: rgba(255,215,0,0.1); transform: translateX(5px); }
+        .card h3 { color: var(--accent); margin-bottom: 5px; font-size: 1.1em; }
+        .card p { color: var(--text-secondary); font-size: 0.85em; }
+        
+        .badge {
+            display: inline-block; padding: 5px 12px; border-radius: 20px;
+            font-size: 0.75em; font-weight: bold; margin-top: 5px;
+        }
+        .badge-free { background: var(--success); color: white; }
+        .badge-pro { background: var(--warning); color: #1a1a2e; }
+        
+        .input-group { margin: 15px 0; }
+        .input-group label { display: block; margin-bottom: 5px; color: var(--accent); font-weight: 600; font-size: 0.9em; }
+        .input-group input, .input-group textarea, .input-group select {
+            width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border);
+            background: var(--input-bg); color: var(--text); font-size: 1em; font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        .input-group textarea { min-height: 100px; resize: vertical; }
+        .input-group input:focus, .input-group textarea:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 10px rgba(255,215,0,0.2); }
+        
+        .progress-bar {
+            background: var(--input-bg); border-radius: 10px; height: 8px; margin: 15px 0; overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; background: var(--accent); border-radius: 10px; transition: width 0.5s ease;
+        }
+        
+        .alert {
+            padding: 15px; border-radius: 10px; margin: 15px 0; border-left: 5px solid;
+        }
+        .alert-success { background: rgba(0,200,83,0.1); border-color: var(--success); }
+        .alert-warning { background: rgba(255,152,0,0.1); border-color: var(--warning); }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        @media (max-width: 400px) { .grid-2 { grid-template-columns: 1fr; } }
+        
+        .footer {
+            text-align: center; margin-top: 25px; padding-top: 20px;
+            border-top: 1px solid var(--border); font-size: 0.8em; color: var(--text-secondary);
+        }
+        .footer .dev { color: var(--accent); font-weight: bold; }
+        
+        .theme-toggle {
+            background: var(--input-bg); border: 1px solid var(--border); color: var(--text);
+            padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 0.85em;
+            margin: 10px 5px; transition: all 0.3s ease;
+        }
+        .theme-toggle:hover { background: var(--accent); color: #1a1a2e; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <header class="header">
+            <h1>📄 Zebedeu Contratos Pro</h1>
+            <p class="subtitle">Gerador Profissional de Contratos em PDF</p>
+            <p class="creator">👨‍💻 Criado por <strong>Zebedeu Caetano Tumba</strong></p>
+            <button class="theme-toggle" onclick="toggleTheme()">🌓 Alternar Tema</button>
+        </header>
+
+        <!-- MENU PRINCIPAL -->
+        <nav class="section active" id="mainMenu">
+            <h3 style="color: var(--accent); margin-bottom: 20px;">📋 Escolha o Modelo de Contrato</h3>
+            
+            <div class="card" onclick="abrirFormulario('trabalho')">
+                <h3>💼 Contrato de Trabalho</h3>
+                <p>Contrato laboral entre empregador e empregado</p>
+                <span class="badge badge-free">GRÁTIS</span>
+            </div>
+            <div class="card" onclick="abrirFormulario('aluguel')">
+                <h3>🏠 Contrato de Aluguel</h3>
+                <p>Arrendamento de imóvel residencial ou comercial</p>
+                <span class="badge badge-free">GRÁTIS</span>
+            </div>
+            <div class="card" onclick="abrirFormulario('servicos')">
+                <h3>🤝 Prestação de Serviços</h3>
+                <p>Para freelancers e profissionais autônomos</p>
+                <span class="badge badge-pro">PRO</span>
+            </div>
+            <div class="card" onclick="abrirFormulario('recibo')">
+                <h3>🧾 Recibo de Pagamento</h3>
+                <p>Comprovante de quitação profissional</p>
+                <span class="badge badge-free">GRÁTIS</span>
+            </div>
+            <div class="card" onclick="abrirFormulario('confidencialidade')">
+                <h3>🔒 Acordo de Confidencialidade (NDA)</h3>
+                <p>Proteção de informações sigilosas</p>
+                <span class="badge badge-pro">PRO</span>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressoGeracoes" style="width: 0%;"></div>
+            </div>
+            <p style="text-align:center; font-size:0.85em; color:var(--text-secondary);" id="contadorGeracoes">
+                Contratos este mês: 0/2 (Grátis)
+            </p>
+            
+            <button class="btn btn-outline" onclick="showSection('historico')" style="margin-top:15px;">
+                📜 Ver Histórico de Contratos
+            </button>
+        </nav>
+
+        <!-- FORMULÁRIO -->
+        <div class="section" id="formulario">
+            <h3 style="color: var(--accent); margin-bottom: 20px;" id="formTitle">Preencha os Dados</h3>
+            <div id="camposFormulario"></div>
+            
+            <div class="grid-2" style="margin-top: 20px;">
+                <button class="btn btn-primary" onclick="gerarContrato()">📥 Gerar PDF</button>
+                <button class="btn btn-success" onclick="compartilharWhatsApp()">📱 WhatsApp</button>
+            </div>
+            <button class="btn btn-outline" onclick="showSection('mainMenu')" style="margin-top:10px;">⬅️ Voltar</button>
+        </div>
+
+        <!-- SUCESSO -->
+        <div class="section" id="sucesso">
+            <div class="alert alert-success">
+                <h3>✅ Contrato Gerado com Sucesso!</h3>
+                <p>O PDF foi baixado automaticamente.</p>
+                <p style="font-size:0.85em; color:var(--text-secondary);">Verifique a pasta de downloads do seu dispositivo.</p>
+            </div>
+            <button class="btn btn-primary" onclick="showSection('mainMenu')">📄 Criar Novo Contrato</button>
+            <button class="btn btn-warning" onclick="compartilharWhatsApp()">📱 Compartilhar no WhatsApp</button>
+        </div>
+
+        <!-- HISTÓRICO -->
+        <div class="section" id="historico">
+            <h3 style="color: var(--accent); margin-bottom: 20px;">📜 Histórico de Contratos</h3>
+            <div id="historicoLista"></div>
+            <button class="btn btn-outline" onclick="showSection('mainMenu')" style="margin-top:15px;">⬅️ Voltar</button>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p>📄 <span class="dev">Zebedeu Contratos Pro</span> v2.0</p>
+            <p>© 2026 <strong>Zebedeu Caetano Tumba</strong> - Todos os direitos reservados</p>
+            <p>Feito com ❤️ em Angola 🇦🇴</p>
+        </footer>
+    </div>
+
+    <script>
+        // ===========================================
+        // CONFIGURAÇÕES GLOBAIS
+        // ===========================================
+        const CONFIG = {
+            LIMITE_GRATIS: 2,
+            MODELOS_PRO: ['servicos', 'confidencialidade'],
+            STORAGE_KEYS: {
+                GERACOES: 'zcp_geracoes_mes',
+                HISTORICO: 'zcp_historico',
+                TEMA: 'zcp_tema'
+            }
+        };
+
+        let contratoAtual = '';
+        let geracoesMes = parseInt(localStorage.getItem(CONFIG.STORAGE_KEYS.GERACOES) || '0');
+        let dadosFormulario = {};
+
+        // ===========================================
+        // FUNÇÕES UTILITÁRIAS
+        // ===========================================
+        function $(id) { return document.getElementById(id); }
+        
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            const target = $(id);
+            if (target) target.classList.add('active');
+            if (id === 'historico') carregarHistorico();
+            if (id === 'mainMenu') atualizarUI();
+        }
+
+        function atualizarUI() {
+            const percentual = (geracoesMes / CONFIG.LIMITE_GRATIS) * 100;
+            $('progressoGeracoes').style.width = Math.min(percentual, 100) + '%';
+            $('contadorGeracoes').textContent = 
+                `Contratos este mês: ${geracoesMes}/${CONFIG.LIMITE_GRATIS} (Grátis)`;
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            const newTheme = current === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem(CONFIG.STORAGE_KEYS.TEMA, newTheme);
+        }
+
+        // Carregar tema salvo
+        const temaSalvo = localStorage.getItem(CONFIG.STORAGE_KEYS.TEMA) || 'dark';
+        document.documentElement.setAttribute('data-theme', temaSalvo);
+
+        // ===========================================
+        // ABERTURA DE FORMULÁRIOS
+        // ===========================================
+        function abrirFormulario(tipo) {
+            contratoAtual = tipo;
+            dadosFormulario = {};
+            
+            const titulos = {
+                trabalho: '💼 Contrato de Trabalho',
+                aluguel: '🏠 Contrato de Aluguel',
+                servicos: '🤝 Prestação de Serviços',
+                recibo: '🧾 Recibo de Pagamento',
+                confidencialidade: '🔒 Acordo de Confidencialidade (NDA)'
+            };
+            
+            $('formTitle').textContent = titulos[tipo];
+            
+            let camposHTML = '';
+            
+            switch(tipo) {
+                case 'trabalho':
+                    camposHTML = `
+                        <div class="input-group"><label>Nome do Empregador *</label><input type="text" id="empregador" placeholder="Nome da empresa ou pessoa" required></div>
+                        <div class="input-group"><label>Nome do Empregado *</label><input type="text" id="empregado" placeholder="Nome completo do funcionário" required></div>
+                        <div class="grid-2">
+                            <div class="input-group"><label>Cargo *</label><input type="text" id="cargo" placeholder="Função a desempenhar" required></div>
+                            <div class="input-group"><label>Salário (AOA) *</label><input type="number" id="salario" placeholder="Ex: 500000" min="1" required></div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="input-group"><label>Data de Início *</label><input type="date" id="dataInicio" required></div>
+                            <div class="input-group"><label>Local de Trabalho *</label><input type="text" id="local" placeholder="Cidade, Província" required></div>
+                        </div>
+                    `;
+                    break;
+                case 'aluguel':
+                    camposHTML = `
+                        <div class="input-group"><label>Nome do Proprietário *</label><input type="text" id="proprietario" placeholder="Nome completo" required></div>
+                        <div class="input-group"><label>Nome do Inquilino *</label><input type="text" id="inquilino" placeholder="Nome completo" required></div>
+                        <div class="input-group"><label>Endereço do Imóvel *</label><input type="text" id="endereco" placeholder="Endereço completo" required></div>
+                        <div class="grid-2">
+                            <div class="input-group"><label>Valor do Aluguel (AOA) *</label><input type="number" id="valorAluguel" placeholder="Ex: 300000" min="1" required></div>
+                            <div class="input-group"><label>Duração (meses) *</label><input type="number" id="duracao" placeholder="Ex: 12" min="1" required></div>
+                        </div>
+                        <div class="input-group"><label>Data de Início *</label><input type="date" id="dataInicioAluguel" required></div>
+                    `;
+                    break;
+                case 'servicos':
+                    camposHTML = `
+                        <div class="grid-2">
+                            <div class="input-group"><label>Contratante *</label><input type="text" id="contratante" placeholder="Nome do cliente" required></div>
+                            <div class="input-group"><label>Prestador *</label><input type="text" id="prestador" placeholder="Seu nome" required></div>
+                        </div>
+                        <div class="input-group"><label>Descrição do Serviço *</label><textarea id="descricaoServico" placeholder="Descreva detalhadamente o serviço a ser prestado..." required></textarea></div>
+                        <div class="grid-2">
+                            <div class="input-group"><label>Valor (AOA) *</label><input type="number" id="valorServico" placeholder="Ex: 150000" min="1" required></div>
+                            <div class="input-group"><label>Prazo de Entrega *</label><input type="date" id="prazo" required></div>
+                        </div>
+                    `;
+                    break;
+                case 'recibo':
+                    camposHTML = `
+                        <div class="grid-2">
+                            <div class="input-group"><label>Quem Pagou *</label><input type="text" id="pagador" placeholder="Nome de quem pagou" required></div>
+                            <div class="input-group"><label>Quem Recebeu *</label><input type="text" id="recebedor" placeholder="Seu nome ou empresa" required></div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="input-group"><label>Valor (AOA) *</label><input type="number" id="valorRecibo" placeholder="Ex: 50000" min="1" required></div>
+                            <div class="input-group"><label>Data do Pagamento *</label><input type="date" id="dataPagamento" required></div>
+                        </div>
+                        <div class="input-group"><label>Referente a *</label><input type="text" id="referente" placeholder="Ex: Pagamento de serviço de design" required></div>
+                    `;
+                    break;
+                case 'confidencialidade':
+                    camposHTML = `
+                        <div class="grid-2">
+                            <div class="input-group"><label>Parte Divulgadora *</label><input type="text" id="parteA" placeholder="Empresa que revela informação" required></div>
+                            <div class="input-group"><label>Parte Receptora *</label><input type="text" id="parteB" placeholder="Quem recebe a informação" required></div>
+                        </div>
+                        <div class="input-group"><label>Objeto do Acordo *</label><textarea id="objeto" placeholder="Descreva as informações confidenciais..." required></textarea></div>
+                        <div class="grid-2">
+                            <div class="input-group"><label>Duração (anos) *</label><input type="number" id="duracaoNDA" placeholder="Ex: 5" min="1" required></div>
+                            <div class="input-group"><label>Data *</label><input type="date" id="dataNDA" required></div>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            $('camposFormulario').innerHTML = camposHTML;
+            showSection('formulario');
+        }
+
+        // ===========================================
+        // GERAÇÃO DE PDF PROFISSIONAL
+        // ===========================================
+        function validarFormulario() {
+            const inputs = document.querySelectorAll('#camposFormulario [required]');
+            let valido = true;
+            
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    input.style.borderColor = 'var(--danger)';
+                    valido = false;
+                } else {
+                    input.style.borderColor = 'var(--border)';
+                }
+            });
+            
+            if (!valido) {
+                alert('❌ Por favor, preencha todos os campos obrigatórios (marcados com *).');
+            }
+            
+            return valido;
+        }
+
+        function coletarDados() {
+            const inputs = document.querySelectorAll('#camposFormulario input, #camposFormulario textarea');
+            const dados = {};
+            inputs.forEach(input => {
+                if (input.id) {
+                    dados[input.id] = input.value.trim() || '[Não informado]';
+                }
+            });
+            return dados;
+        }
+
+        function gerarConteudoContrato(tipo, dados) {
+            const hoje = new Date().toLocaleDateString('pt-BR');
+            let conteudo = '';
+            
+            switch(tipo) {
+                case 'trabalho':
+                    conteudo = `CONTRATO INDIVIDUAL DE TRABALHO\n\n` +
+                        `Pelo presente instrumento particular, as partes:\n\n` +
+                        `EMPREGADOR: ${dados.empregador}\n` +
+                        `EMPREGADO: ${dados.empregado}\n\n` +
+                        `CLÁUSULA 1ª - DO OBJETO\n` +
+                        `O EMPREGADO é contratado para exercer a função de ${dados.cargo}, comprometendo-se a desempenhar suas atividades com zelo e dedicação.\n\n` +
+                        `CLÁUSULA 2ª - DA REMUNERAÇÃO\n` +
+                        `O EMPREGADO receberá salário mensal de ${Number(dados.salario).toLocaleString('pt-AO')} AOA (Kwanza Angolano), pago até o 5º dia útil do mês subsequente.\n\n` +
+                        `CLÁUSULA 3ª - DA JORNADA\n` +
+                        `A jornada será de 44 horas semanais, nos termos da legislação angolana.\n\n` +
+                        `CLÁUSULA 4ª - DO LOCAL\n` +
+                        `A prestação de serviços ocorrerá em ${dados.local}.\n\n` +
+                        `CLÁUSULA 5ª - DA VIGÊNCIA\n` +
+                        `O contrato inicia em ${dados.dataInicio}, por prazo indeterminado.\n\n` +
+                        `E, por estarem justas e contratadas, assinam o presente em duas vias.\n\n` +
+                        `_________________________________\n${dados.empregador}\nEMPREGADOR\n\n` +
+                        `_________________________________\n${dados.empregado}\nEMPREGADO\n\n` +
+                        `${dados.local}, ${hoje}.`;
+                    break;
+                case 'aluguel':
+                    conteudo = `CONTRATO DE ARRENDAMENTO (ALUGUEL)\n\n` +
+                        `PROPRIETÁRIO: ${dados.proprietario}\n` +
+                        `INQUILINO: ${dados.inquilino}\n\n` +
+                        `CLÁUSULA 1ª - DO OBJETO\n` +
+                        `O imóvel situado em ${dados.endereco} é dado em arrendamento ao INQUILINO para fins residenciais.\n\n` +
+                        `CLÁUSULA 2ª - DO VALOR\n` +
+                        `O aluguel mensal é de ${Number(dados.valorAluguel).toLocaleString('pt-AO')} AOA, a ser pago até o dia 10 de cada mês.\n\n` +
+                        `CLÁUSULA 3ª - DO PRAZO\n` +
+                        `O contrato vigora por ${dados.duracao} meses, a partir de ${dados.dataInicioAluguel}.\n\n` +
+                        `CLÁUSULA 4ª - DAS OBRIGAÇÕES\n` +
+                        `O INQUILINO deve conservar o imóvel e não pode sublocar sem autorização.\n\n` +
+                        `_________________________________\n${dados.proprietario}\nPROPRIETÁRIO\n\n` +
+                        `_________________________________\n${dados.inquilino}\nINQUILINO`;
+                    break;
+                case 'servicos':
+                    conteudo = `CONTRATO DE PRESTAÇÃO DE SERVIÇOS\n\n` +
+                        `CONTRATANTE: ${dados.contratante}\n` +
+                        `PRESTADOR: ${dados.prestador}\n\n` +
+                        `CLÁUSULA 1ª - DO OBJETO\n${dados.descricaoServico}\n\n` +
+                        `CLÁUSULA 2ª - DO VALOR\n` +
+                        `O valor total é de ${Number(dados.valorServico).toLocaleString('pt-AO')} AOA, a ser pago na conclusão do serviço.\n\n` +
+                        `CLÁUSULA 3ª - DO PRAZO\nO serviço será concluído até ${dados.prazo}.\n\n` +
+                        `_________________________________\n${dados.contratante}\nCONTRATANTE\n\n` +
+                        `_________________________________\n${dados.prestador}\nPRESTADOR`;
+                    break;
+                case 'recibo':
+                    conteudo = `RECIBO DE PAGAMENTO\n\n` +
+                        `Valor: ${Number(dados.valorRecibo).toLocaleString('pt-AO')} AOA\n\n` +
+                        `Recebi de ${dados.pagador} a quantia acima, referente a ${dados.referente}.\n\n` +
+                        `_________________________________\n${dados.recebedor}\n\n` +
+                        `Data: ${dados.dataPagamento}`;
+                    break;
+                case 'confidencialidade':
+                    conteudo = `ACORDO DE CONFIDENCIALIDADE (NDA)\n\n` +
+                        `PARTE DIVULGADORA: ${dados.parteA}\n` +
+                        `PARTE RECEPTORA: ${dados.parteB}\n\n` +
+                        `CLÁUSULA 1ª - DO OBJETO\n${dados.objeto}\n\n` +
+                        `CLÁUSULA 2ª - DA VIGÊNCIA\nEste acordo vigora por ${dados.duracaoNDA} anos.\n\n` +
+                        `CLÁUSULA 3ª - DA PENALIDADE\nA violação deste acordo sujeita o infrator a perdas e danos.\n\n` +
+                        `_________________________________\n${dados.parteA}\nDIVULGADORA\n\n` +
+                        `_________________________________\n${dados.parteB}\nRECEPTORA\n\n` +
+                        `${dados.dataNDA}`;
+                    break;
+                default:
+                    conteudo = 'Erro ao gerar conteúdo.';
+            }
+            
+            return conteudo + `\n\n---\nGerado por Zebedeu Contratos Pro\nCriado por Zebedeu Caetano Tumba | ${hoje}`;
+        }
+
+        async function gerarContrato() {
+            if (!validarFormulario()) return;
+            
+            const dados = coletarDados();
+            const conteudo = gerarConteudoContrato(contratoAtual, dados);
+            
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                
+                // Configurações profissionais
+                doc.setFont('helvetica');
+                doc.setFontSize(9);
+                doc.setTextColor(50, 50, 50);
+                
+                // Margens
+                const margemEsquerda = 15;
+                const margemDireita = 195;
+                let y = 20;
+                
+                const linhas = conteudo.split('\n');
+                
+                for (const linha of linhas) {
+                    if (y > 275) {
+                        doc.addPage();
+                        y = 20;
+                    }
+                    
+                    if (linha.trim() === '') {
+                        y += 3;
+                        continue;
+                    }
+                    
+                    // Títulos em negrito e maior
+                    if (linha === linha.toUpperCase() && linha.length > 5 && !linha.startsWith('_')) {
+                        doc.setFont('helvetica', 'bold');
+                        doc.setFontSize(11);
+                        doc.text(linha, margemEsquerda, y);
+                        doc.setFont('helvetica', 'normal');
+                        doc.setFontSize(9);
+                        y += 7;
+                    } else {
+                        doc.text(linha, margemEsquerda, y);
+                        y += 4.5;
+                    }
+                }
+                
+                // Rodapé
+                doc.setFontSize(7);
+                doc.setTextColor(150, 150, 150);
+                doc.text('Zebedeu Contratos Pro - Criado por Zebedeu Caetano Tumba - Angola', 105, 290, { align: 'center' });
+                
+                // Download
+                const nomesArquivos = {
+                    trabalho: 'Contrato_Trabalho.pdf',
+                    aluguel: 'Contrato_Aluguel.pdf',
+                    servicos: 'Contrato_Prestacao_Servicos.pdf',
+                    recibo: 'Recibo_Pagamento.pdf',
+                    confidencialidade: 'Acordo_Confidencialidade_NDA.pdf'
+                };
+                
+                doc.save(nomesArquivos[contratoAtual] || 'Contrato.pdf');
+                
+                // Atualizar contadores
+                geracoesMes++;
+                localStorage.setItem(CONFIG.STORAGE_KEYS.GERACOES, geracoesMes.toString());
+                
+                // Salvar histórico
+                salvarHistorico(contratoAtual, dados);
+                
+                showSection('sucesso');
+                
+            } catch (error) {
+                console.error('Erro ao gerar PDF:', error);
+                alert('❌ Erro ao gerar o PDF. Verifique sua conexão e tente novamente.');
+            }
+        }
+
+        // ===========================================
+        // COMPARTILHAMENTO
+        // ===========================================
+        function compartilharWhatsApp() {
+            const texto = `📄 Acabei de gerar um contrato profissional no Zebedeu Contratos Pro!\n\nCrie o seu gratuitamente: ${window.location.href}\n\nCriado por Zebedeu Caetano Tumba 🇦🇴`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
+        }
+
+        // ===========================================
+        // HISTÓRICO
+        // ===========================================
+        function salvarHistorico(tipo, dados) {
+            const historico = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.HISTORICO) || '[]');
+            historico.unshift({
+                tipo: tipo,
+                dados: dados,
+                data: new Date().toLocaleString('pt-BR')
+            });
+            if (historico.length > 30) historico.pop();
+            localStorage.setItem(CONFIG.STORAGE_KEYS.HISTORICO, JSON.stringify(historico));
+        }
+
+        function carregarHistorico() {
+            const historico = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.HISTORICO) || '[]');
+            const container = $('historicoLista');
+            
+            if (historico.length === 0) {
+                container.innerHTML = '<p style="text-align:center; padding:30px; color:var(--text-secondary);">📭 Nenhum contrato gerado ainda.</p>';
+                return;
+            }
+            
+            const nomes = {
+                trabalho: '💼 Contrato de Trabalho',
+                aluguel: '🏠 Contrato de Aluguel',
+                servicos: '🤝 Prestação de Serviços',
+                recibo: '🧾 Recibo de Pagamento',
+                confidencialidade: '🔒 Acordo de Confidencialidade'
+            };
+            
+            container.innerHTML = historico.map((h, i) => `
+                <div class="card" style="cursor:default; border-left-color: ${i < 2 ? 'var(--success)' : 'var(--warning)'};">
+                    <h3>${nomes[h.tipo] || h.tipo}</h3>
+                    <p style="font-size:0.8em;">📅 ${h.data}</p>
+                    ${h.dados ? `<p style="font-size:0.75em; color:var(--text-secondary);">${Object.values(h.dados).slice(0,2).join(' | ')}</p>` : ''}
+                </div>
+            `).join('');
+        }
+
+        // ===========================================
+        // INICIALIZAÇÃO
+        // ===========================================
+        function init() {
+            atualizarUI();
+        }
+        
+        init();
+    </script>
+</body>
+</html>
